@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { SeedModule } from './seed/seed.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ClinicModule } from './clinic/clinic.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { ClinicModule } from './clinic/clinic.module';
     }),
     SeedModule,
     PrismaModule,
-    ClinicModule
+    ClinicModule,
+    AuthModule
 
   ],
   controllers: [AppController],

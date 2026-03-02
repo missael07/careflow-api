@@ -1,42 +1,56 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsEmail,
   IsOptional,
   IsEnum,
   Length,
-  ValidateIf,
+  IsDateString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PlanType, ClinicStatus } from '@prisma/client';
 
 export class CreateClinicDto {
+
+  @ApiProperty({ example: 'Clínica Santa María' })
   @IsString()
   @Length(2, 80)
   name: string;
 
+  @ApiProperty({ example: 'contacto@santamaria.com' })
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase().trim())
   email: string;
 
-  // Solo SUPER_ADMIN debería poder enviar esto
+  @ApiProperty({
+    enum: PlanType,
+    example: PlanType.PRO,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(PlanType)
   plan?: PlanType;
 
+  @ApiProperty({
+    enum: ClinicStatus,
+    example: ClinicStatus.ACTIVE,
+    required: false,
+  })
   @IsOptional()
   @IsEnum(ClinicStatus)
   status?: ClinicStatus;
 
+  @ApiProperty({
+    example: '2026-12-31T00:00:00.000Z',
+    required: false,
+  })
   @IsOptional()
-  @Transform(({ value }) => (value ? new Date(value) : null))
-  licenseExpiresAt?: Date;
+  @IsDateString()
+  licenseExpiresAt?: string;
 
-  // Datos del admin inicial
+  @ApiProperty({ example: 'admin@santamaria.com' })
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase().trim())
   adminEmail: string;
 
-  @IsString()
-  @Length(8, 100)
-  adminPassword: string;
 }

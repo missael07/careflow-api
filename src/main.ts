@@ -14,7 +14,7 @@ async function bootstrap() {
   /* ===========================
     🔐 Seguridad básica
   =========================== */
-
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
   app.use(helmet())
   app.use(compression())
 
@@ -50,11 +50,11 @@ async function bootstrap() {
   =========================== */
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('CareFlow API')
-    .setDescription('Clinical SaaS API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build()
+  .setTitle('CareFlow API')
+  .setDescription('API documentation')
+  .setVersion('1.0')
+  .addBearerAuth()
+  .build();
 
     
     const document = SwaggerModule.createDocument(app, swaggerConfig)

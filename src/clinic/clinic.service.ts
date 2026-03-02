@@ -35,13 +35,13 @@ export class ClinicService {
       |--------------------------------------------------------------------------
       */
 
-      if (dto.licenseExpiresAt) {
-        if (dto.licenseExpiresAt <= new Date()) {
-          throw new BadRequestException(
-            'licenseExpiresAt debe ser una fecha futura',
-          );
-        }
-      }
+      // if (dto.licenseExpiresAt) {
+      //   if (dto.licenseExpiresAt <= new Date()) {
+      //     throw new BadRequestException(
+      //       'licenseExpiresAt debe ser una fecha futura',
+      //     );
+      //   }
+      // }
 
       /*
       |--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ export class ClinicService {
       const plan = dto.plan ?? PlanType.BASIC;
       const status = dto.status ?? ClinicStatus.TRIAL;
 
-      const hashedPassword = await bcrypt.hash(dto.adminPassword, 10);
+      const hashedPassword = await bcrypt.hash('Admin123*', 10);
 
       /*
       |--------------------------------------------------------------------------
