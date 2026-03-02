@@ -13,12 +13,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ClinicStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum PlanType {
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
 model Clinic {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  createdAt DateTime @default(now())
-  users     User[]
-  patients  Patient[]
+  id               String        @id @default(uuid())
+  name             String
+  email            String        @unique
+  status           ClinicStatus  @default(TRIAL)
+  plan             PlanType      @default(BASIC)
+  licenseExpiresAt DateTime?
+  users            User[]
+  patients         Patient[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
 }
 
 model User {
@@ -27,9 +45,14 @@ model User {
   password  String
   roleId    String
   role      Role     @relation(fields: [roleId], references: [id])
-  clinicId  String
-  clinic    Clinic   @relation(fields: [clinicId], references: [id])
+  clinicId  String?
+  clinic    Clinic?  @relation(fields: [clinicId], references: [id])
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([clinicId])
 }
 
 model Patient {
@@ -39,6 +62,10 @@ model Patient {
   clinicId  String
   clinic    Clinic   @relation(fields: [clinicId], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([clinicId])
 }
 
 model Role {
