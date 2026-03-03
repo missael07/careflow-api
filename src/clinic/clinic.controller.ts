@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
 import { ClinicService } from './clinic.service';
 import { CreateClinicDto } from './dto/create-clinic.dto';
 import { UpdateClinicDto } from './dto/update-clinic.dto';
@@ -7,39 +7,57 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { User } from '@prisma/client';
 
 @Controller('clinic')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}
 
-@ApiBearerAuth()
+
 @Post()
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('SUPER_ADMIN')
 create(
   @Body() createClinicDto: CreateClinicDto,
-  @CurrentUser() user: any,
+  @CurrentUser() user: User,
 ) {
   return this.clinicService.create(createClinicDto, user);
 }
 
+  // 🔥 SOLO SUPER_ADMIN
   @Get()
-  findAll() {
-    return this.clinicService.findAll();
+  @Roles('SUPER_ADMIN')
+  findAll(@CurrentUser() user: User) {
+    return this.clinicService.findAll(user);
   }
 
+  // 🔥 SUPER_ADMIN o ADMIN
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.clinicService.findOne(+id);
+  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC')
+  findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.clinicService.findOne(id, user);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateClinicDto: UpdateClinicDto) {
-    return this.clinicService.update(+id, updateClinicDto);
+  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateClinicDto,
+    @CurrentUser() user: User,
+  ) {
+    return this.clinicService.update(id, dto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clinicService.remove(+id);
+  @Roles('SUPER_ADMIN')
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.clinicService.remove(id, user);
   }
 }

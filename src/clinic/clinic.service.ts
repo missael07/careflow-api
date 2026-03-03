@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateClinicDto } from './dto/create-clinic.dto';
@@ -35,13 +36,13 @@ export class ClinicService {
       |--------------------------------------------------------------------------
       */
 
-      // if (dto.licenseExpiresAt) {
-      //   if (dto.licenseExpiresAt <= new Date()) {
-      //     throw new BadRequestException(
-      //       'licenseExpiresAt debe ser una fecha futura',
-      //     );
-      //   }
-      // }
+      if (dto.licenseExpiresAt) {
+        if (dto.licenseExpiresAt <= new Date()) {
+          throw new BadRequestException(
+            'licenseExpiresAt debe ser una fecha futura',
+          );
+        }
+      }
 
       /*
       |--------------------------------------------------------------------------
@@ -106,19 +107,86 @@ export class ClinicService {
     });
   }
 
-  findAll() {
-    return `This action returns all clinic`;
+  findAll(user: any) {
+    return this.prisma.clinic.findMany( {where: { status: ClinicStatus.ACTIVE}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} clinic`;
+  async findOne(id: string, user: any) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clínica no encontrada');
+    }
+
+    // 🔥 Si es ADMIN, solo puede ver su propia clínica
+    if (user.role === 'ADMIN_CLINIC' && user.clinicId !== id) {
+      throw new ForbiddenException(
+        'No tienes permiso para ver esta clínica',
+      );
+    }
+
+    return clinic;
   }
 
-  update(id: number, updateClinicDto: UpdateClinicDto) {
-    return `This action updates a #${id} clinic`;
+   async update(id: string, dto: any, user: any) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clínica no encontrada');
+    }
+
+    // 🔥 ADMIN solo puede editar su clínica
+    if (user.role === 'ADMIN_CLINIC' && user.clinicId !== id) {
+      throw new ForbiddenException(
+        'No tienes permiso para modificar esta clínica',
+      );
+    }
+
+if (user.role === 'ADMIN_CLINIC') {
+  delete dto.plan;
+  delete dto.status;
+}
+
+ const {
+    adminEmail,
+    adminPassword,
+    ...clinicData
+  } = dto;
+    return this.prisma.clinic.update({
+      where: { id },
+      data: clinicData,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} clinic`;
+  async remove(id: string, user: any) {
+    const clinic = await this.prisma.clinic.findUnique({
+      where: { id },
+    });
+
+    if (!clinic) {
+      throw new NotFoundException('Clínica no encontrada');
+    }
+
+    // 🔥 Solo SUPER_ADMIN puede eliminar
+    if (user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar esta clínica',
+      );
+    }
+
+    // 🟢 OPCIÓN RECOMENDADA: Soft delete
+    return this.prisma.clinic.update({
+      where: { id },
+      data: {
+        status: ClinicStatus.SUSPENDED,
+      },
+    });
+
+    // ❌ Hard delete (no recomendado en SaaS)
+    // return this.prisma.clinic.delete({ where: { id } });
   }
 }

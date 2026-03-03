@@ -6,6 +6,7 @@ import {
   IsEnum,
   Length,
   IsDateString,
+  IsDate,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PlanType, ClinicStatus } from '@prisma/client';
@@ -45,8 +46,9 @@ export class CreateClinicDto {
     required: false,
   })
   @IsOptional()
-  @IsDateString()
-  licenseExpiresAt?: string;
+  @Transform(({ value }) => new Date(value))
+  @IsDate()
+  licenseExpiresAt?: Date;
 
   @ApiProperty({ example: 'admin@santamaria.com' })
   @IsEmail()
