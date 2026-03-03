@@ -6,7 +6,6 @@ import helmet from 'helmet'
 import compression from 'compression'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { NestExpressApplication } from '@nestjs/platform-express'
-import * as fs from 'fs'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
@@ -63,7 +62,6 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET);
     console.log(process.env.NODE_ENV)
     if (process.env.NODE_ENV !== 'production') {
       SwaggerModule.setup('docs', app, document)
-      fs.writeFileSync('./openapi.json', JSON.stringify(document))
     }
   /* ===========================
     🚀 Puerto Railway
