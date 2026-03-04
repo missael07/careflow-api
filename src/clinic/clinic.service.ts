@@ -73,16 +73,16 @@ export class ClinicService {
 
       /*
       |--------------------------------------------------------------------------
-      | 5️⃣ Obtener rol ADMIN_CLINIC
+      | 5️⃣ Obtener rol ADMIN
       |--------------------------------------------------------------------------
       */
 
       const adminRole = await tx.role.findUnique({
-        where: { name: 'ADMIN_CLINIC' },
+        where: { name: 'ADMIN' },
       });
 
       if (!adminRole) {
-        throw new BadRequestException('Rol ADMIN_CLINIC no existe');
+        throw new BadRequestException('Rol ADMIN no existe');
       }
 
       /*
@@ -131,7 +131,7 @@ export class ClinicService {
     }
 
     // 🔥 Si es ADMIN, solo puede ver su propia clínica
-    if (user.role === 'ADMIN_CLINIC' && user.clinicId !== id) {
+    if (user.role === 'ADMIN' && user.clinicId !== id) {
       throw new ForbiddenException(
         'No tienes permiso para ver esta clínica',
       );
@@ -150,13 +150,13 @@ export class ClinicService {
     }
 
     // 🔥 ADMIN solo puede editar su clínica
-    if (user.role === 'ADMIN_CLINIC' && user.clinicId !== id) {
+    if (user.role === 'ADMIN' && user.clinicId !== id) {
       throw new ForbiddenException(
         'No tienes permiso para modificar esta clínica',
       );
     }
 
-if (user.role === 'ADMIN_CLINIC') {
+if (user.role === 'ADMIN') {
   delete dto.plan;
   delete dto.status;
 }

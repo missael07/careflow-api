@@ -34,7 +34,7 @@ create(
 
   // 🔥 SUPER_ADMIN o ADMIN
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   findOne(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
@@ -43,7 +43,7 @@ create(
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   update(
     @Param('id') id: string,
     @Body() dto: UpdateClinicDto,

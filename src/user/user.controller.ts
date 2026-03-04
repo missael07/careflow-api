@@ -16,34 +16,36 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   create(@Body() createUserDto: CreateUserDto, @CurrentUser() user: User) {
     return this.userService.create(createUserDto, user);
   }
 
   @Get('me')
-  @Roles('SUPER_ADMIN', 'ADMIN_CLINIC', 'INTERNAL', 'EXTERNAL')
   getMe(@CurrentUser() user: any) {
     return this.userService.getMe(user.sub);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  findAll(@CurrentUser() user: any) {
+    return this.userService.findAll(user);
   }
 
   @Get(':id')
+  @Roles('SUPER_ADMIN', 'ADMIN')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @CurrentUser() user: any) {
+    return this.userService.update(id, updateUserDto, user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @Roles('SUPER_ADMIN', 'ADMIN')
+  remove(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.userService.remove(id, user);
   }
 }

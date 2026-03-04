@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,7 +12,7 @@ export class UserService {
   async create(dto: CreateUserDto, currentUser: any) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    if (currentUser.role === 'ADMIN_CLINIC') {
+    if (currentUser.role === 'ADMIN') {
       dto.clinicId = currentUser.clinicId;
     }
 
@@ -50,19 +50,91 @@ export class UserService {
       },
     });
   }
-  findAll() {
-    return `This action returns all user`;
+
+  findAll(user: any) {
+    const prisma = this.prisma.withTenant(user.clinicId, user.role);
+    return prisma.user.findMany();
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, dto: UpdateUserDto, currentUser: any) {
+    const profile = await this.prisma.profile.findUnique({
+      where: { userId: id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            clinicId: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Perfil no encontrado');
+    }
+
+
+    // 🔥 SUPER_ADMIN puede todo
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      if(currentUser.role == 'ADMIN' &&
+        profile.user.clinicId !== currentUser.clinicId){
+        throw new ForbiddenException('Acceso denegado');
+      } else if (
+        currentUser.role !== 'ADMIN' &&
+        profile.user.id !== currentUser.sub
+      ) {
+        throw new ForbiddenException('Acceso denegado');
+      }
+    }
+
+    const { clinicId, email,roleId, password, ...profileData } = dto;
+    return this.prisma.profile.update({
+      where: { userId: id },
+      data: profileData,
+      include: {
+        user: {
+        include: {
+          clinic: true,
+          role: true
+        },
+      },        
+      }
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string, currentUser: any) {
+        const user = await this.prisma.user.findUnique({
+      where: { id }
+    });
+
+    if (!user) {
+      throw new NotFoundException('Perfil no encontrado');
+    }
+
+    // 🔥 SUPER_ADMIN puede todo
+    if (currentUser.role !== 'SUPER_ADMIN') {
+      if(currentUser.role === 'ADMIN' &&
+        user.clinicId !== currentUser.clinicId
+      || user.id === currentUser.sub){
+        throw new ForbiddenException('Acceso denegado');
+      }
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: {
+        isActive: false
+      },
+      include: {
+        clinic: true,
+        role: true,
+        profile: true
+      },
+    });
   }
 }

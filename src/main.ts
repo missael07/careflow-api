@@ -14,7 +14,6 @@ async function bootstrap() {
   /* ===========================
     🔐 Seguridad básica
   =========================== */
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
   app.use(helmet())
   app.use(compression())
 
@@ -59,7 +58,6 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET);
     
     const document = SwaggerModule.createDocument(app, swaggerConfig)
 
-    console.log(process.env.NODE_ENV)
     if (process.env.NODE_ENV !== 'production') {
       SwaggerModule.setup('docs', app, document)
     }
