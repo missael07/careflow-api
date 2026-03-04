@@ -6,6 +6,7 @@ import { SeedModule } from './seed/seed.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ClinicModule } from './clinic/clinic.module';
 import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { AuthModule } from './auth/auth.module';
     SeedModule,
     PrismaModule,
     ClinicModule,
-    AuthModule
+    AuthModule,
+    UserModule
 
   ],
   controllers: [AppController],

@@ -17,8 +17,8 @@ export class SeedService {
        |--------------------------------------------------------------------------
        */
 
-      const roles = ['SUPER_ADMIN', 'ADMIN_CLINIC', 'DOCTOR', 'ASSISTANT'];
-
+      const roles = ['SUPER_ADMIN', 'ADMIN', 'INTERNAL', 'EXTERNAL'];
+      
       for (const roleName of roles) {
         await tx.role.upsert({
           where: { name: roleName },
@@ -27,38 +27,15 @@ export class SeedService {
         });
       }
 
-      /*
-       |--------------------------------------------------------------------------
-       | 2️⃣ Clínica demo
-       |--------------------------------------------------------------------------
-       */
-
-      const clinic = await tx.clinic.upsert({
-        where: { email: 'demo@careflow.com' },
-        update: {},
-        create: {
-          name: 'Clínica Demo CareFlow',
-          email: 'demo@careflow.com',
-          status: ClinicStatus.ACTIVE,
-          plan: PlanType.PRO,
-          licenseExpiresAt: new Date(
-            new Date().setMonth(new Date().getMonth() + 1),
-          ),
-        },
-      });
 
       /*
        |--------------------------------------------------------------------------
-       | 3️⃣ Obtener roles
+       | 3️⃣ Obtener rol
        |--------------------------------------------------------------------------
        */
 
       const superAdminRole = await tx.role.findUnique({
         where: { name: 'SUPER_ADMIN' },
-      });
-
-      const adminClinicRole = await tx.role.findUnique({
-        where: { name: 'ADMIN_CLINIC' },
       });
 
       /*
@@ -81,26 +58,29 @@ export class SeedService {
 
       /*
        |--------------------------------------------------------------------------
-       | 5️⃣ Admin de clínica
+       | 4️⃣ Super Admin Profile
        |--------------------------------------------------------------------------
        */
 
-      await tx.user.upsert({
-        where: {
-            email: 'admin@demo.com',
-        },
-        update: {},
-        create: {
-          email: 'admin@demo.com',
-          password: hashedPassword,
-          roleId: adminClinicRole!.id,
-          clinicId: clinic.id,
+       const superAdmin = await tx.user.findUnique({
+        where: { email: 'superadmin@careflow.com' },
+      });
+
+      await tx.profile.create({
+        data: {
+          userId: superAdmin!.id,
+          firstName: 'Missael',
+          lastName: 'Padilla',
+          phone: '6862487608',
+          address: 'Rio Salvador 1953 Valle Dorado 21399',
         },
       });
+
 
       return {
         message: 'Seed ejecutado correctamente 🚀',
       };
+
     });
   }
 }

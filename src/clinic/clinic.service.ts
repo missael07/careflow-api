@@ -91,12 +91,22 @@ export class ClinicService {
       |--------------------------------------------------------------------------
        */
 
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
           email: dto.adminEmail,
           password: hashedPassword,
           roleId: adminRole.id,
           clinicId: clinic.id,
+        },
+      });
+
+      await tx.profile.create({
+        data: {
+          userId: user.id,
+          firstName: dto.firstName,
+          lastName: dto.lastName,
+          phone: dto.phone,
+          address: dto.address,
         },
       });
 
